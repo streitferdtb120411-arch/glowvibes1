@@ -37,7 +37,7 @@ public final class HandFx {
 
 	private static final int SEGS = 7;
 	private static final BoltSet ARM = new BoltSet(3, SEGS);
-	private static final BoltSet MAIN_ITEM = new BoltSet(6, SEGS);
+	private static final BoltSet MAIN_ITEM = new BoltSet(4, SEGS);
 	private static final BoltSet OFF_ITEM = new BoltSet(3, SEGS);
 
 	private HandFx() {
@@ -66,7 +66,7 @@ public final class HandFx {
 		if (!c.itemFx) {
 			return;
 		}
-		submit(poseStack, collector, mainHand ? MAIN_ITEM : OFF_ITEM, 0f, 0.32f, 0f, 0.38f, c);
+		submit(poseStack, collector, mainHand ? MAIN_ITEM : OFF_ITEM, 0f, 0.3f, 0f, 0.3f, c);
 	}
 
 	private static void regen(BoltSet s, int b, float cx, float cy, float cz, float r) {
@@ -114,7 +114,10 @@ public final class HandFx {
 		int maxV = s.count * SEGS * 32;
 		final float[] v = new float[maxV * 3];
 		final int[] col = new int[maxV];
+		final float[] gv = new float[maxV * 3];
+		final int[] gcol = new int[maxV];
 		int n = 0;
+		int gn = 0;
 		for (int b = 0; b < s.count; b++) {
 			s.age[b] += dt;
 			if (s.age[b] >= s.life[b] || s.life[b] == 0) {
@@ -124,17 +127,24 @@ public final class HandFx {
 			float flick = RND.nextFloat() < 0.12f ? 0.35f : 1f;
 			float a = ColorUtil.clamp01((1f - t * 0.6f) * flick * k);
 			int base = th.gradient(b * 0.2f + time * 0.3f);
-			int core = ColorUtil.withAlpha(ColorUtil.brighten(base, 0.3f), a);
-			int glow = ColorUtil.withAlpha(base, a * 0.6f);
+			int core = ColorUtil.withAlpha(ColorUtil.brighten(base, 0.15f), a * 0.85f);
+			int glow = ColorUtil.withAlpha(base, a * 0.32f);
 			for (int i = 0; i < SEGS; i++) {
-				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.03f, glow);
-				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.006f, core);
+				gn = ribbon(gv, gcol, gn, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.014f, glow);
+				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.0035f, core);
 			}
 		}
 		final int count = n;
+		final int gcount = gn;
 		if (count == 0) {
 			return;
 		}
+		// soft coloured halo (alpha blended, keeps the theme colour even against a bright sky)
+		collector.submitCustomGeometry(poseStack, RenderTypes.debugFilledBox(), (pose, buffer) -> {
+			for (int i = 0; i < gcount; i++) {
+				buffer.addVertex(pose, gv[i * 3], gv[i * 3 + 1], gv[i * 3 + 2]).setColor(gcol[i]);
+			}
+		});
 		collector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (pose, buffer) -> {
 			for (int i = 0; i < count; i++) {
 				buffer.addVertex(pose, v[i * 3], v[i * 3 + 1], v[i * 3 + 2]).setColor(col[i]);
