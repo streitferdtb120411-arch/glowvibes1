@@ -1,5 +1,10 @@
 name: Build mod
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,3 +17,15 @@ jobs:
         run: chmod +x ./gradlew && ./gradlew build --stacktrace
       - uses: actions/upload-artifact@v4
         with: { name: glowvibes-mod, path: 'build/libs/*.jar' }
+      - name: Publish jar to the 'builds' branch
+        run: |
+          mkdir -p /tmp/out && cp build/libs/*.jar /tmp/out/ && rm -f /tmp/out/*-sources.jar
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan builds
+          git rm -rf -q .
+          git clean -fdx -q
+          cp /tmp/out/*.jar .
+          git add ./*.jar
+          git commit -q -m "Build ${GITHUB_SHA}"
+          git push -f origin builds
