@@ -299,16 +299,19 @@ public final class GlowScreen extends Screen {
 
 	// ------------------------------------------------------------------ panel
 
+	private int tabStep = 22;
+	private int groupGap = 14;
+
 	private int tabY(int index, int top) {
 		int y = top;
 		for (int i = 0; i <= index; i++) {
 			for (int gIdx = 0; gIdx < GROUP_START.length; gIdx++) {
 				if (GROUP_START[gIdx] == i) {
-					y += 14;
+					y += groupGap;
 				}
 			}
 			if (i < index) {
-				y += 22;
+				y += tabStep;
 			}
 		}
 		return y;
@@ -346,7 +349,15 @@ public final class GlowScreen extends Screen {
 
 		// tabs
 		int tabsTop = py + 40;
-		int tabH = 20;
+		// fit the sidebar to the panel height: shrink spacing on small windows, hide the chip if needed
+		int avail = H - 40 - 6;
+		boolean showChip = avail - 26 >= GROUP_START.length * 14 + TABS.length * 18;
+		if (showChip) {
+			avail -= 26;
+		}
+		groupGap = avail >= GROUP_START.length * 14 + TABS.length * 22 ? 14 : 12;
+		tabStep = Math.max(15, Math.min(22, (avail - GROUP_START.length * groupGap) / TABS.length));
+		int tabH = tabStep - 2;
 		tabIndicator.prime(tabY(tab, tabsTop));
 		tabIndicator.target = tabY(tab, tabsTop);
 		tabIndicator.update(dt);
@@ -383,11 +394,12 @@ public final class GlowScreen extends Screen {
 			g.pose().translate(shift, 0f);
 			// icon badge
 			int badge = ColorUtil.lerp(ColorUtil.withAlpha(th.panel2, 0.9f), th.gradient(i * 0.12f + now * 0.2f), sa.value);
-			Draw.round(g, px + 12, ty + 3, 15, 15, 5, col(badge));
+			int bo = Math.max(0, (tabH - 15) / 2);
+			Draw.round(g, px + 12, ty + bo, 15, 15, 5, col(badge));
 			int iconCol = ColorUtil.lerp(th.textDim, 0xFFFFFFFF, Math.max(sa.value, ha.value * 0.5f));
 			int iw = this.font.width(ICONS[i]);
-			g.text(this.font, ICONS[i], px + 12 + (15 - iw) / 2 + 1, ty + 7, col(iconCol), false);
-			g.text(this.font, TABS[i], px + 33, ty + 7, col(ColorUtil.lerp(th.textDim, th.text, lit)), false);
+			g.text(this.font, ICONS[i], px + 12 + (15 - iw) / 2 + 1, ty + bo + 4, col(iconCol), false);
+			g.text(this.font, TABS[i], px + 33, ty + (tabH - 8) / 2 + 1, col(ColorUtil.lerp(th.textDim, th.text, lit)), false);
 			g.pose().popMatrix();
 			ga = baseGa;
 			if (clicked(px + 7, ty, side - 14, tabH)) {
@@ -396,10 +408,12 @@ public final class GlowScreen extends Screen {
 		}
 
 		// sidebar footer chip
-		int chipY = py + H - 24;
-		Draw.round(g, px + 9, chipY, side - 18, 16, 5, col(ColorUtil.withAlpha(th.panel2, 0.7f)));
-		Draw.round(g, px + 14, chipY + 5, 6, 6, 3, col(th.gradient(now * 0.3f)));
-		g.text(this.font, th.display + " theme", px + 25, chipY + 4, col(th.textDim), false);
+		if (showChip) {
+			int chipY = py + H - 24;
+			Draw.round(g, px + 9, chipY, side - 18, 16, 5, col(ColorUtil.withAlpha(th.panel2, 0.7f)));
+			Draw.round(g, px + 14, chipY + 5, 6, 6, 3, col(th.gradient(now * 0.3f)));
+			g.text(this.font, th.display + " theme", px + 25, chipY + 4, col(th.textDim), false);
+		}
 
 		// header
 		int x0 = px + side + 14;

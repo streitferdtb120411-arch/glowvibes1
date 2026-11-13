@@ -64,7 +64,7 @@ public final class WorldTint {
 
 	/** Light colour for the lightmap (sky light / ambient), softer so the world stays readable. */
 	public static Vector3f light(Vector3fc c) {
-		float s = strength() * 0.55f;
+		float s = strength() * 0.8f;
 		if (s <= 0f || c == null) {
 			return c == null ? null : new Vector3f(c);
 		}

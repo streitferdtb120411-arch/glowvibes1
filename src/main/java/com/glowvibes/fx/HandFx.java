@@ -37,7 +37,7 @@ public final class HandFx {
 
 	private static final int SEGS = 7;
 	private static final BoltSet ARM = new BoltSet(3, SEGS);
-	private static final BoltSet MAIN_ITEM = new BoltSet(4, SEGS);
+	private static final BoltSet MAIN_ITEM = new BoltSet(6, SEGS);
 	private static final BoltSet OFF_ITEM = new BoltSet(3, SEGS);
 
 	private HandFx() {
@@ -56,7 +56,7 @@ public final class HandFx {
 		float zs = -0.4f * (float) Math.sin(attackValue * Math.PI);
 		poseStack.pushPose();
 		poseStack.translate(invert * (xs + 0.64f), ys - 0.6f + inverseArmHeight * -0.6f, zs - 0.72f);
-		submit(poseStack, collector, ARM, invert * -0.02f, 0.06f, 0.02f, 0.2f, c);
+		submit(poseStack, collector, ARM, invert * -0.12f, 0.1f, -0.02f, 0.2f, c);
 		poseStack.popPose();
 	}
 
@@ -66,7 +66,7 @@ public final class HandFx {
 		if (!c.itemFx) {
 			return;
 		}
-		submit(poseStack, collector, mainHand ? MAIN_ITEM : OFF_ITEM, 0.04f, 0.16f, 0.04f, 0.3f, c);
+		submit(poseStack, collector, mainHand ? MAIN_ITEM : OFF_ITEM, 0f, 0.32f, 0f, 0.38f, c);
 	}
 
 	private static void regen(BoltSet s, int b, float cx, float cy, float cz, float r) {
@@ -124,10 +124,10 @@ public final class HandFx {
 			float flick = RND.nextFloat() < 0.12f ? 0.35f : 1f;
 			float a = ColorUtil.clamp01((1f - t * 0.6f) * flick * k);
 			int base = th.gradient(b * 0.2f + time * 0.3f);
-			int core = ColorUtil.withAlpha(ColorUtil.brighten(base, 0.7f), a);
-			int glow = ColorUtil.withAlpha(base, a * 0.45f);
+			int core = ColorUtil.withAlpha(ColorUtil.brighten(base, 0.3f), a);
+			int glow = ColorUtil.withAlpha(base, a * 0.6f);
 			for (int i = 0; i < SEGS; i++) {
-				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.022f, glow);
+				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.03f, glow);
 				n = ribbon(v, col, n, s.px[b][i], s.py[b][i], s.pz[b][i], s.px[b][i + 1], s.py[b][i + 1], s.pz[b][i + 1], 0.006f, core);
 			}
 		}

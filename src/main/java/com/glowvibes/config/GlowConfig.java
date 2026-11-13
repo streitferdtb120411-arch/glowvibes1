@@ -65,7 +65,7 @@ public final class GlowConfig {
 	// Screen
 	public int configVersion = 0;
 	public boolean worldTint = true;
-	public float worldTintStrength = 0.5f;
+	public float worldTintStrength = 0.6f;
 	public boolean screenTint = true;
 	public float tintStrength = 0.15f;
 	public boolean vignette = false;
