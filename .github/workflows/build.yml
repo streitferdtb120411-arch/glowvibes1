@@ -13,13 +13,13 @@ jobs:
         with: { distribution: temurin, java-version: '25' }
       - uses: gradle/actions/setup-gradle@v4
       - name: Install virtual display and software GL
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0 mesa-vulkan-drivers libvulkan1 > /dev/null; glxinfo -B 2>&1 | head -5 || true
       - name: Run client for a while
         run: |
           chmod +x ./gradlew
           mkdir -p run && echo "onboardAccessibility:false" > run/options.txt
           export LIBGL_ALWAYS_SOFTWARE=1
-          timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --stacktrace > /tmp/client.log 2>&1 || true
+          timeout 420 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew runClient --stacktrace > /tmp/client.log 2>&1 || true
           tail -c 200000 /tmp/client.log > /tmp/client-tail.log
       - name: Push logs
         run: |
