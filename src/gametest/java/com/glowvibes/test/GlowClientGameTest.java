@@ -29,10 +29,13 @@ public class GlowClientGameTest implements FabricClientGameTest {
 			context.waitTicks(30);
 			context.takeScreenshot("02_sword_lightning");
 
-			context.getInput().holdKeyFor(options -> options.keyJump, 3);
-			context.waitTicks(6);
+			context.runOnClient(client -> client.player.setXRot(55f));
+			context.waitTicks(5);
+			context.getInput().holdKeyFor(options -> options.keyJump, 2);
+			context.waitTicks(4);
 			context.takeScreenshot("03_jump_circle");
 			context.waitTicks(30);
+			context.runOnClient(client -> client.player.setXRot(0f));
 
 			sp.getServer().runCommand("execute as @a at @s run summon minecraft:zombie ^ ^ ^2.2 {NoAI:1b,Silent:1b}");
 			context.waitTicks(20);
@@ -43,9 +46,13 @@ public class GlowClientGameTest implements FabricClientGameTest {
 			context.waitTicks(10);
 			context.takeScreenshot("04_target_in_reach");
 
-			context.runOnClient(client -> client.options.setCameraType(CameraType.THIRD_PERSON_BACK));
+			sp.getServer().runCommand("kill @e[type=minecraft:zombie]");
+			sp.getServer().runCommand("item replace entity @a weapon.mainhand with minecraft:air");
+			context.waitTicks(10);
+			context.takeScreenshot("04b_empty_hand_lightning");
+			context.runOnClient(client -> client.options.setCameraType(CameraType.THIRD_PERSON_FRONT));
 			context.getInput().holdKeyFor(options -> options.keyUp, 20);
-			context.waitTicks(4);
+			context.waitTicks(2);
 			context.takeScreenshot("05_third_person_trail_aura");
 			context.runOnClient(client -> client.options.setCameraType(CameraType.FIRST_PERSON));
 
