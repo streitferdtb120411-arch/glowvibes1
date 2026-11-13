@@ -76,7 +76,8 @@ public final class GlowHud {
 			entries.add(new Entry("Hit FX", "", c.hitFx));
 			entries.add(new Entry("Chroma", "", c.chroma));
 			entries.add(new Entry("Screen Tint", "", c.screenTint));
-			entries.add(new Entry("Hand FX", c.handFxMode == 0 ? "Lightning" : (c.handFxMode == 1 ? "Aura" : "Both"), c.handFx));
+			entries.add(new Entry("World Tint", "", c.worldTint));
+			entries.add(new Entry("Lightning", c.handFx && c.itemFx ? "Hand+Item" : (c.handFx ? "Hand" : "Item"), c.handFx || c.itemFx));
 			entries.sort((a, b) -> Integer.compare(width(font, b), width(font, a)));
 
 			int sw = g.guiWidth();

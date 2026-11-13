@@ -44,9 +44,6 @@ public final class ScreenFx {
 		if (c.screenTint) {
 			tint(g, c, th, time);
 		}
-		if (c.handFx) {
-			hand(g, c, th, time, dt);
-		}
 	}
 
 	/** The colour the whole scene is graded towards: the theme's ambience colour, slowly drifting. */

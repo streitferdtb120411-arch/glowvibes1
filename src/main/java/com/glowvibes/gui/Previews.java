@@ -289,6 +289,11 @@ final class Previews {
 		g.fillGradient(sx, sy, sx + sw, sy + sh * 2 / 3, ColorUtil.withAlpha(0xFF7EC8FF, ga), ColorUtil.withAlpha(0xFFBFE6FF, ga));
 		g.fillGradient(sx, sy + sh * 2 / 3, sx + sw, sy + sh, ColorUtil.withAlpha(0xFF5FA341, ga), ColorUtil.withAlpha(0xFF3C7A2A, ga));
 		int col = ScreenFx.ambienceColor(th, t);
+		if (c.worldTint) {
+			float ws = c.worldTintStrength;
+			g.fillGradient(sx, sy, sx + sw, sy + sh * 2 / 3, ColorUtil.withAlpha(col, ws * 0.55f * ga), ColorUtil.withAlpha(col, ws * 0.35f * ga));
+			g.fill(sx, sy + sh * 2 / 3, sx + sw, sy + sh, ColorUtil.withAlpha(col, ws * 0.25f * ga));
+		}
 		if (c.screenTint) {
 			float s = c.tintStrength;
 			g.fill(sx, sy, sx + sw, sy + sh, ColorUtil.withAlpha(col, s * 0.22f * ga));
@@ -299,20 +304,21 @@ final class Previews {
 				Draw.hGradient(g, sx + sw - sw / 4, sy, sw / 4, sh, ColorUtil.withAlpha(col, 0f), ColorUtil.withAlpha(col, s * 0.55f * ga));
 			}
 		}
-		// hand
+		// hand holding a sword
 		int hx = sx + sw - 26, hy = sy + sh - 22;
+		if (c.itemFx || !c.handFx) {
+			ScreenFx.segment(g, hx + 6, hy + 4, hx - 10, hy - 22, 3, ColorUtil.withAlpha(0xFFD8E4EE, ga));
+		}
 		Draw.round(g, hx, hy, 16, 26, 3, ColorUtil.withAlpha(0xFFE8B896, ga));
-		if (c.handFx) {
-			if (c.handFxMode != 0) {
-				float pulse = 0.75f + 0.25f * (float) Math.sin(t * 3f);
-				dot(g, hx + 8, hy + 10, 34, ColorUtil.withAlpha(col, 0.16f * pulse * c.handFxIntensity * ga));
-				dot(g, hx + 8, hy + 10, 20, ColorUtil.withAlpha(col, 0.2f * pulse * c.handFxIntensity * ga));
-			}
-			if (c.handFxMode != 1) {
+		if (c.handFx || c.itemFx) {
+			{
 				BOLT_RND.setSeed((long) (t * 9));
 				for (int b = 0; b < 3; b++) {
-					float bx = hx + BOLT_RND.nextFloat() * 16, by = hy + 26;
-					float ex = hx - 4 + BOLT_RND.nextFloat() * 24, ey = hy - 8 - BOLT_RND.nextFloat() * 8;
+					boolean onItem = c.itemFx && (b % 2 == 0 || !c.handFx);
+					float bx = onItem ? hx - 8 + BOLT_RND.nextFloat() * 14 : hx + BOLT_RND.nextFloat() * 16;
+					float by = onItem ? hy - 20 + BOLT_RND.nextFloat() * 6 : hy + 18;
+					float ex = onItem ? hx - 2 + BOLT_RND.nextFloat() * 10 : hx - 4 + BOLT_RND.nextFloat() * 24;
+					float ey = onItem ? hy - 2 : hy - 4 - BOLT_RND.nextFloat() * 6;
 					float lx = bx, ly = by;
 					for (int s = 1; s <= 6; s++) {
 						float f = s / 6f;

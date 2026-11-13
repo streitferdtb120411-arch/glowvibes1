@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.glowvibes.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"FirstPersonHandsMixin",
+		"FogRendererMixin",
+		"LightmapMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

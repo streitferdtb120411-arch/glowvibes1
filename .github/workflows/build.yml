@@ -1,37 +1,33 @@
-name: Probe sources
+name: Smoke test
 on:
   push:
     branches: [probe]
 permissions:
   contents: write
 jobs:
-  probe:
+  smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v5
         with: { distribution: temurin, java-version: '25' }
       - uses: gradle/actions/setup-gradle@v4
-      - name: Decompile Minecraft
-        run: chmod +x ./gradlew && ./gradlew genSources --stacktrace
-      - name: Collect selected sources
+      - name: Install virtual display and software GL
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
+      - name: Run client for a while
         run: |
-          J=$(find ~/.gradle "$PWD/.gradle" -name "*-sources.jar" 2>/dev/null | grep -i minecraft | head -5); echo "$J"
-          mkdir -p /tmp/src && cd /tmp/src
-          for j in $J; do unzip -q -o "$j" || true; done
-          mkdir -p /tmp/pick
-          for p in FirstPersonHandsAndItemsRenderer FirstPersonHandsAndItemsRenderState ItemInHandRenderer; do
-            find /tmp/src -name "$p.java" -exec cp --parents {} /tmp/pick \; ; done
-          find /tmp/src -path "*client/renderer*" -iname "*fog*.java" -exec cp --parents {} /tmp/pick \;
-          find /tmp/src -path "*client/renderer*" -iname "*sky*.java" -exec cp --parents {} /tmp/pick \;
-          find /tmp/src -iname "*blur*.java" -exec cp --parents {} /tmp/pick \;
-          find /tmp/src -name "*.java" | sed "s#/tmp/src/##" > /tmp/pick/ALL_FILES.txt
-          find /tmp/pick -name "*.java" | head -100
-      - name: Push to probe-out
+          chmod +x ./gradlew
+          mkdir -p run && echo "onboardAccessibility:false" > run/options.txt
+          export LIBGL_ALWAYS_SOFTWARE=1
+          timeout 420 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient --stacktrace > /tmp/client.log 2>&1 || true
+          tail -c 200000 /tmp/client.log > /tmp/client-tail.log
+      - name: Push logs
         run: |
+          mkdir -p /tmp/out && cp /tmp/client-tail.log /tmp/out/ && cp run/logs/latest.log /tmp/out/ 2>/dev/null || true
+          cp -r run/crash-reports /tmp/out/ 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan probe-out
           git rm -rf -q . ; git clean -fdx -q
-          cp -r /tmp/pick/tmp/src/* . 2>/dev/null; cp /tmp/pick/ALL_FILES.txt .
-          git add -A && git commit -q -m probe && git push -f origin probe-out
+          cp -r /tmp/out/* .
+          git add -A && git commit -q -m smoke && git push -f origin probe-out

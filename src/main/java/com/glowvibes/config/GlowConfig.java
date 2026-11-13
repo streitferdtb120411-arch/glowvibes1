@@ -63,11 +63,15 @@ public final class GlowConfig {
 	public boolean reachDisplay = true;
 
 	// Screen
+	public int configVersion = 0;
+	public boolean worldTint = true;
+	public float worldTintStrength = 0.5f;
 	public boolean screenTint = true;
-	public float tintStrength = 0.35f;
-	public boolean vignette = true;
+	public float tintStrength = 0.15f;
+	public boolean vignette = false;
 	public boolean handFx = true;
-	public int handFxMode = 0; // 0 Lightning, 1 Aura, 2 Both
+	public boolean itemFx = true;
+	public int handFxMode = 0; // legacy, unused
 	public float handFxIntensity = 1.0f;
 
 	// HUD
@@ -118,6 +122,14 @@ public final class GlowConfig {
 		ambMode = Math.floorMod(ambMode, 7);
 		orbitCount = Math.max(1, Math.min(8, orbitCount));
 		handFxMode = Math.floorMod(handFxMode, 3);
+		if (configVersion < 3) {
+			// 2.4: no more blurry vignette, lighter overlay; the world itself gets tinted instead
+			vignette = false;
+			tintStrength = Math.min(tintStrength, 0.15f);
+			worldTint = true;
+			itemFx = true;
+			configVersion = 3;
+		}
 		if (guiAnimSpeed < 0.3f) {
 			guiAnimSpeed = 1f;
 		}
