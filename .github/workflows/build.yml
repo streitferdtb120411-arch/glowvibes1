@@ -19,12 +19,14 @@ jobs:
           chmod +x ./gradlew
           mkdir -p run && echo "onboardAccessibility:false" > run/options.txt
           export LIBGL_ALWAYS_SOFTWARE=1
-          timeout 420 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew runClient --stacktrace > /tmp/client.log 2>&1 || true
+          timeout 900 xvfb-run -a -s "-screen 0 1280x720x24 +extension GLX +render -noreset" ./gradlew runClientGameTest --stacktrace > /tmp/client.log 2>&1 || true
           tail -c 200000 /tmp/client.log > /tmp/client-tail.log
       - name: Push logs
         run: |
           mkdir -p /tmp/out && cp /tmp/client-tail.log /tmp/out/ && cp run/logs/latest.log /tmp/out/ 2>/dev/null || true
           cp -r run/crash-reports /tmp/out/ 2>/dev/null || true
+          find . -path ./node_modules -prune -o -name '*.png' -newer build.gradle -print | grep -i screenshot | head -30 | xargs -I{} cp {} /tmp/out/ 2>/dev/null || true
+          ls /tmp/out
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --orphan probe-out

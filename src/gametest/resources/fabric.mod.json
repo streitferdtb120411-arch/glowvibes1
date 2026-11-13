@@ -1,0 +1,10 @@
+{
+	"schemaVersion": 1,
+	"id": "glowvibes-gametest",
+	"version": "1.0.0",
+	"name": "GlowVibes visual test",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": ["com.glowvibes.test.GlowClientGameTest"]
+	}
+}
