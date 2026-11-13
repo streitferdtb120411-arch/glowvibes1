@@ -34,13 +34,13 @@ public final class GlowScreen extends Screen {
 			"Particles floating around you.",
 			"Halo, orbiting orbs and hit sparks.",
 			"Target glow, hit marker, combo, reach.",
-			"Color the screen, charge your hand.",
+			"Color the whole world, charge your hand.",
 			"Watermark and feature list."
 	};
 	private static final int[] GROUP_START = {0, 1, 6};
 	private static final String[] GROUP_NAMES = {"STYLE", "WORLD", "SCREEN"};
 	private static final String[] HAND_MODES = {"Lightning", "Aura", "Both"};
-	private static final String VERSION = "v2.3";
+	private static final String VERSION = "v2.4";
 
 	private static final int ROW_T = 26; // toggle / mode row incl. gap
 	private static final int ROW_S = 32; // slider row incl. gap
@@ -572,8 +572,10 @@ public final class GlowScreen extends Screen {
 				c.screenTint = d.screenTint;
 				c.tintStrength = d.tintStrength;
 				c.vignette = d.vignette;
+				c.worldTint = d.worldTint;
+				c.worldTintStrength = d.worldTintStrength;
+				c.itemFx = d.itemFx;
 				c.handFx = d.handFx;
-				c.handFxMode = d.handFxMode;
 				c.handFxIntensity = d.handFxIntensity;
 			}
 			default -> {
@@ -789,22 +791,29 @@ public final class GlowScreen extends Screen {
 
 	private int tabScreen(GuiGraphicsExtractor g, GlowConfig c, Theme th, int x, int y, int w) {
 		y = preview(g, c, th, x, y, w);
-		int innerH = ROW_T * 2 + ROW_S;
-		int ry = card(g, th, "Screen tint", x, y, w, innerH);
-		c.screenTint = saveIfChanged(c.screenTint, toggle(g, th, "tint", "Tint screen", "Colors your view in the ambience color", c.screenTint, x + 4, ry, w - 8));
+		int innerH = ROW_T + ROW_S;
+		int ry = card(g, th, "World color", x, y, w, innerH);
+		c.worldTint = saveIfChanged(c.worldTint, toggle(g, th, "worldTint", "Tint sky, fog & light", "The whole world takes on the ambience color, no blur", c.worldTint, x + 4, ry, w - 8));
 		ry += ROW_T;
-		c.tintStrength = slider(g, th, "tintStr", "Strength", "How strong the color wash is", c.tintStrength, 0.05f, 1f, 2, "", x + 4, ry, w - 8);
-		ry += ROW_S;
-		c.vignette = saveIfChanged(c.vignette, toggle(g, th, "vig", "Colored vignette", "Glowing colored screen edges", c.vignette, x + 4, ry, w - 8));
+		c.worldTintStrength = slider(g, th, "worldStr", "World strength", "How strongly sky, fog and daylight are colored", c.worldTintStrength, 0.05f, 1f, 2, "", x + 4, ry, w - 8);
 		y = afterCard(y, innerH);
 
+		int innerO = ROW_T * 2 + ROW_S;
+		ry = card(g, th, "Screen overlay", x, y, w, innerO);
+		c.screenTint = saveIfChanged(c.screenTint, toggle(g, th, "tint", "Color overlay", "A light, even color wash over your view", c.screenTint, x + 4, ry, w - 8));
+		ry += ROW_T;
+		c.tintStrength = slider(g, th, "tintStr", "Overlay strength", "Keep it low for a clean look", c.tintStrength, 0.02f, 0.6f, 2, "", x + 4, ry, w - 8);
+		ry += ROW_S;
+		c.vignette = saveIfChanged(c.vignette, toggle(g, th, "vig", "Colored edges", "Soft glow at the screen edges", c.vignette, x + 4, ry, w - 8));
+		y = afterCard(y, innerO);
+
 		int inner2 = ROW_T * 2 + ROW_S;
-		ry = card(g, th, "Hand (first person)", x, y, w, inner2);
-		c.handFx = saveIfChanged(c.handFx, toggle(g, th, "hand", "Hand effect", "Overlay where your arm sits on screen", c.handFx, x + 4, ry, w - 8));
+		ry = card(g, th, "Lightning (first person)", x, y, w, inner2);
+		c.handFx = saveIfChanged(c.handFx, toggle(g, th, "hand", "On your hand", "3D lightning crackles around your fist and follows every swing", c.handFx, x + 4, ry, w - 8));
 		ry += ROW_T;
-		c.handFxMode = segmented(g, th, "handMode", "Style", "Crackling bolts, soft aura, or both", HAND_MODES, c.handFxMode, x + 4, ry, w - 8);
+		c.itemFx = saveIfChanged(c.itemFx, toggle(g, th, "itemFx", "On weapons & items", "3D lightning around whatever you hold", c.itemFx, x + 4, ry, w - 8));
 		ry += ROW_T;
-		c.handFxIntensity = slider(g, th, "handInt", "Intensity", "Brightness of the hand effect", c.handFxIntensity, 0.2f, 2f, 1, "x", x + 4, ry, w - 8);
+		c.handFxIntensity = slider(g, th, "handInt", "Intensity", "Brightness of the lightning", c.handFxIntensity, 0.2f, 2f, 1, "x", x + 4, ry, w - 8);
 		return afterCard(y, inner2);
 	}
 
