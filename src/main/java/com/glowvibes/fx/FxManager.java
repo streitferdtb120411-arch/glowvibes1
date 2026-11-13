@@ -19,6 +19,7 @@ import com.glowvibes.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 
 /**
  * The whole visual engine. Simulation runs per rendered frame (not per tick), so motion stays
@@ -47,6 +48,21 @@ public final class FxManager {
 	private long lastTickNanos = System.nanoTime();
 	private long lastFrameNanos;
 	private float time;
+
+	/** Entity under the vanilla crosshair (already limited to attack reach by vanilla). */
+	public Entity target;
+	public double targetDistance;
+	public float lastHitReach = -1f;
+	public float lastHitTime = -100f;
+	public int combo;
+	private final Anim targetAnim = new Anim(14f);
+
+	public float targetAlpha() {
+		return targetAnim.value;
+	}
+
+	/** True while the local player is in first person (read by the hand overlay). */
+	public boolean firstPerson = true;
 
 	private boolean wasOnGround = true;
 	private double lastVy;
@@ -148,6 +164,14 @@ public final class FxManager {
 
 	public void onAttack(Entity target) {
 		GlowConfig c = GlowConfig.get();
+		// PvP HUD bookkeeping (combo, reach of the last hit)
+		float nowS = ColorUtil.seconds();
+		combo = nowS - lastHitTime < 2.5f ? combo + 1 : 1;
+		lastHitTime = nowS;
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player != null) {
+			lastHitReach = (float) eyeDistance(mc.player.getX(), mc.player.getY() + 1.62, mc.player.getZ(), target.getBoundingBox());
+		}
 		if (!c.hitFx) {
 			return;
 		}
@@ -267,7 +291,7 @@ public final class FxManager {
 			if (p != null && p[4] < 0.5) {
 				double eyeY = p[1] + p[3] * 0.9;
 				double dx = camX - p[0], dy = camY - eyeY, dz = camZ - p[2];
-				boolean firstPerson = dx * dx + dy * dy + dz * dz < 0.6 * 0.6;
+				firstPerson = dx * dx + dy * dy + dz * dz < 0.6 * 0.6;
 				if (!firstPerson) {
 					if (c.halo) {
 						renderHalo(buf, p, c, th);
@@ -280,6 +304,61 @@ public final class FxManager {
 		}
 
 		renderParticles(buf, c, th);
+		updateTarget(buf, mc, c, th, pt, dt);
+	}
+
+	private static double eyeDistance(double ex, double ey, double ez, AABB bb) {
+		double cx = Math.max(bb.minX, Math.min(ex, bb.maxX));
+		double cy = Math.max(bb.minY, Math.min(ey, bb.maxY));
+		double cz = Math.max(bb.minZ, Math.min(ez, bb.maxZ));
+		double dx = ex - cx, dy = ey - cy, dz = ez - cz;
+		return Math.sqrt(dx * dx + dy * dy + dz * dz);
+	}
+
+	private void updateTarget(QuadBuffer buf, Minecraft mc, GlowConfig c, Theme th, float pt, float dt) {
+		Entity t = null;
+		if (mc.hitResult instanceof EntityHitResult ehr && ehr.getEntity() != mc.player) {
+			t = ehr.getEntity();
+		}
+		if (t != null) {
+			target = t;
+			targetDistance = eyeDistance(mc.player.getX(), mc.player.getY() + 1.62, mc.player.getZ(), t.getBoundingBox());
+		}
+		targetAnim.target = t != null ? 1f : 0f;
+		targetAnim.update(dt);
+		if (targetAnim.value < 0.01f) {
+			target = null;
+			return;
+		}
+		if (!c.pvpTarget || target == null) {
+			return;
+		}
+		// interpolate players so the box sticks to them while they move
+		AABB bb = target.getBoundingBox();
+		double ox = 0, oy = 0, oz = 0;
+		double[] ip = interp(target.getUUID(), pt), cur = curPos.get(target.getUUID());
+		if (ip != null && cur != null) {
+			ox = ip[0] - cur[0];
+			oy = ip[1] - cur[1];
+			oz = ip[2] - cur[2];
+		}
+		float a = targetAnim.value * (0.75f + 0.25f * (float) Math.sin(time * 9f));
+		int col = c.pvpTargetThemeColor ? th.gradient(time * 0.3f) : 0xFFFF3040;
+		double g = 0.04;
+		box(buf, bb.minX + ox - g, bb.minY + oy - g, bb.minZ + oz - g, bb.maxX + ox + g, bb.maxY + oy + g, bb.maxZ + oz + g,
+				ColorUtil.withAlpha(col, 0.22f * a), ColorUtil.withAlpha(col, 0.05f * a));
+		double g2 = 0.14;
+		box(buf, bb.minX + ox - g2, bb.minY + oy - g2 * 0.3, bb.minZ + oz - g2, bb.maxX + ox + g2, bb.maxY + oy + g2, bb.maxZ + oz + g2,
+				ColorUtil.withAlpha(col, 0.07f * a), ColorUtil.withAlpha(col, 0f));
+	}
+
+	/** Axis aligned box whose sides fade from bottom colour to top colour. */
+	private static void box(QuadBuffer b, double x0, double y0, double z0, double x1, double y1, double z1, int bottom, int top) {
+		b.quad(x0, y0, z0, bottom, x1, y0, z0, bottom, x1, y1, z0, top, x0, y1, z0, top);
+		b.quad(x0, y0, z1, bottom, x1, y0, z1, bottom, x1, y1, z1, top, x0, y1, z1, top);
+		b.quad(x0, y0, z0, bottom, x0, y0, z1, bottom, x0, y1, z1, top, x0, y1, z0, top);
+		b.quad(x1, y0, z0, bottom, x1, y0, z1, bottom, x1, y1, z1, top, x1, y1, z0, top);
+		b.quad(x0, y0, z0, bottom, x1, y0, z0, bottom, x1, y0, z1, bottom, x0, y0, z1, bottom);
 	}
 
 	private static double dist2(double[] a, double[] b) {

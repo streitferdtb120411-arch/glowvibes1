@@ -46,6 +46,7 @@ public class GlowVibesClient implements ClientModInitializer {
 
 		LevelRenderEvents.BEFORE_TRANSLUCENT_TERRAIN.register(FxRenderer::render);
 
+		HudElementRegistry.addFirst(Identifier.fromNamespaceAndPath(MOD_ID, "screen_fx"), com.glowvibes.hud.ScreenFx::extract);
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(MOD_ID, "hud"), GlowHud::extract);
 
 		AttackEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {

@@ -48,6 +48,8 @@ public final class GlowHud {
 		}
 		float time = ColorUtil.seconds();
 
+		PvpHud.render(g, font, c, th, time);
+
 		if (c.hudWatermark) {
 			String name = "GlowVibes";
 			String info = fps + " fps";
@@ -73,6 +75,8 @@ public final class GlowHud {
 			entries.add(new Entry("Orbit", String.valueOf(c.orbitCount), c.orbit));
 			entries.add(new Entry("Hit FX", "", c.hitFx));
 			entries.add(new Entry("Chroma", "", c.chroma));
+			entries.add(new Entry("Screen Tint", "", c.screenTint));
+			entries.add(new Entry("Hand FX", c.handFxMode == 0 ? "Lightning" : (c.handFxMode == 1 ? "Aura" : "Both"), c.handFx));
 			entries.sort((a, b) -> Integer.compare(width(font, b), width(font, a)));
 
 			int sw = g.guiWidth();

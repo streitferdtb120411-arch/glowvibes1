@@ -54,6 +54,22 @@ public final class GlowConfig {
 	public boolean hitFx = true;
 	public float hitIntensity = 1.0f;
 
+	// PvP HUD (visual only, uses vanilla's own crosshair target)
+	public boolean pvpTarget = true;
+	public boolean pvpTargetThemeColor = false;
+	public boolean pvpCrosshair = true;
+	public boolean hitMarker = true;
+	public boolean comboCounter = true;
+	public boolean reachDisplay = true;
+
+	// Screen
+	public boolean screenTint = true;
+	public float tintStrength = 0.35f;
+	public boolean vignette = true;
+	public boolean handFx = true;
+	public int handFxMode = 0; // 0 Lightning, 1 Aura, 2 Both
+	public float handFxIntensity = 1.0f;
+
 	// HUD
 	public boolean hudWatermark = true;
 	public boolean hudList = true;
@@ -101,6 +117,7 @@ public final class GlowConfig {
 		jumpStyle = Math.floorMod(jumpStyle, 4);
 		ambMode = Math.floorMod(ambMode, 7);
 		orbitCount = Math.max(1, Math.min(8, orbitCount));
+		handFxMode = Math.floorMod(handFxMode, 3);
 		if (guiAnimSpeed < 0.3f) {
 			guiAnimSpeed = 1f;
 		}
