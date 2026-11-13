@@ -16,7 +16,7 @@ jobs:
         run: chmod +x ./gradlew && ./gradlew genSources --stacktrace
       - name: Collect selected sources
         run: |
-          J=$(find ~/.gradle .gradle -name "*-sources.jar" 2>/dev/null | grep -i minecraft | head -5); echo "$J"
+          J=$(find ~/.gradle "$PWD/.gradle" -name "*-sources.jar" 2>/dev/null | grep -i minecraft | head -5); echo "$J"
           mkdir -p /tmp/src && cd /tmp/src
           for j in $J; do unzip -q -o "$j" || true; done
           mkdir -p /tmp/pick
