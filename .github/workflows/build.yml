@@ -20,7 +20,7 @@ jobs:
           mkdir -p /tmp/src && cd /tmp/src
           for j in $J; do unzip -q -o "$j" || true; done
           mkdir -p /tmp/pick
-          for p in ItemInHandRenderer GameRenderer FogRenderer LevelRenderer SkyRenderer Screen GuiRenderer ItemRenderer ItemStackRenderState RenderTypes RenderPipelines Lightmap LightTexture PlayerArmRenderer; do
+          for p in GameRenderer SubmitNodeStorage SubmitNodeCollector OrderedSubmitNodeCollector LevelRenderState CameraRenderState PlayerRenderState Screen; do
             find /tmp/src -name "$p.java" -exec cp --parents {} /tmp/pick \; ; done
           find /tmp/src -path "*client/renderer*" -iname "*fog*.java" -exec cp --parents {} /tmp/pick \;
           find /tmp/src -path "*client/renderer*" -iname "*sky*.java" -exec cp --parents {} /tmp/pick \;
